@@ -1,0 +1,36 @@
+{
+  "name": "polyba",
+  "description": "BA case holder",
+  "main": "server.js",
+  "authors": [
+    "Uladzimir Harabtsou <hofvl0nley@gmail.com>"
+  ],
+  "license": "MIT",
+  "moduleType": [
+    "node"
+  ],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "iron-elements": "PolymerElements/iron-elements#^1.0.0",
+    "neon-elements": "PolymerElements/neon-elements#^1.0.0",
+    "page": "visionmedia/page.js#~1.6.4",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.1",
+    "platinum-elements": "PolymerElements/platinum-elements#^1.1.0",
+    "polymer": "Polymer/polymer#^1.2.0",
+    "paper-dialog": "PolymerElements/paper-dialog#^1.0.3",
+    "iron-signals": "PolymerElements/iron-signals#^1.0.3",
+    "iron-list": "PolymerElements/iron-list#^1.2.0",
+    "iron-autogrow-textarea": "PolymerElements/iron-autogrow-textarea#^1.0.10",
+    "paper-input": "PolymerElements/paper-input#^1.1.5"
+  },
+  "devDependencies": {
+    "web-component-tester": "^4.0.0"
+  }
+}

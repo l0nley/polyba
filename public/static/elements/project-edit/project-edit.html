@@ -1,0 +1,72 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-grid/iron-grid.html">
+<link rel="import" href="../../bower_components/iron-signals/iron-signals.html">
+
+<dom-module id="project-edit">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            span {
+                @apply(--paper-font-body1);
+            }
+
+        </style>
+        <iron-ajax id="getProject" last-response="{{project}}"></iron-ajax>
+        <iron-ajax id="poster" on-response="refreshAndGoRoot" content-type="application/json"></iron-ajax>
+        <div class="card-content">
+            <paper-input label="Project name" value="{{project.name}}"></paper-input>
+        </div>
+        <div class="card-actions">
+                <paper-icon-button icon="check" on-click="save"></paper-icon-button>
+                <paper-icon-button icon="cancel" on-click="cancel"></paper-icon-button>
+        </div>
+    </template>
+
+    <script>
+        (function () {
+            'use strict';
+            Polymer({
+                is: 'project-edit',
+                properties: {
+                    project: {
+                        type: Object,
+                        notify: true
+                    },
+                    ids : {
+                        type: Object,
+                        notify :true,
+                        observer : "pidChanged"
+                    }
+                },
+                pidChanged : function(newPid) {
+                    var getter = this.$.getProject;
+                    getter.url = "/api/project/"+newPid.pid;
+                    getter.method = "GET";
+                    getter.generateRequest();
+                },
+                cancel : function() {
+                    page("/");
+                },
+                refreshAndGoRoot : function (){
+                    this.fire("iron-signal", { name: "refprojects"});
+                    page("/");
+                },
+                save : function(e) {
+                    var poster = this.$.poster;
+                    poster.method = "PATCH";
+                    poster.url="/api/project/"+ this.ids.pid;
+                    poster.body = JSON.stringify({
+                        name: this.project.name
+                    });
+                    poster.generateRequest();
+
+                }
+            });
+        })();
+    </script>
+</dom-module>

@@ -1,0 +1,105 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-signals/iron-signals.html">
+
+<dom-module id="project-list">
+    <template>
+        <iron-signals on-iron-signal-refprojects="refreshList"></iron-signals>
+        <iron-ajax id="getter" url="/api/project" last-response="{{projects}}"></iron-ajax>
+        <iron-ajax id="poster" on-response="refreshList" on-error="refreshList"></iron-ajax>
+        <style>
+            :host {
+                display: block;
+            }
+
+            paper-card {
+                margin-bottom: 10px;
+                --paper-card-header-color:#222;
+                --paper-card-header-image: {
+                    width: 200px;
+                    height:100px;
+                }
+            }
+        </style>
+        <paper-dialog id="deleteConfirm">
+            <h2>Delete project</h2>
+            <div>
+                Are you sure want to delete project?
+                <br/>All cases will be deleted as well.
+                <div class="buttons">
+                    <paper-icon-button icon="cancel" on-click="dismiss">Cancel</paper-icon-button>
+                    <paper-icon-button icon="delete" on-click="deleteProject">Yes, delete it</paper-icon-button>
+                </div>
+            </div>
+        </paper-dialog>
+        <template is="dom-repeat" items="{{projects}}">
+            <paper-card heading="{{item.name}}" image="/images/simple/nature.jpg" on-tap="navigateToCases">
+                <div class="card-actions">
+                    <paper-icon-button icon="delete" on-click="deleteClick"></paper-icon-button>
+                    <paper-icon-button icon="create" on-click="editClick"></paper-icon-button>
+                </div>
+            </paper-card>
+        </template>
+        <paper-card heading="Create project" image="/images/simple/one.png">
+            <div class="card-actions">
+                <paper-icon-button icon="add-circle-outline" on-click="createClick"></paper-icon-button>
+            </div>
+        </paper-card>
+    </template>
+
+    <script>
+        (function () {
+            'use strict';
+            var lastSelected = null;
+            Polymer({
+                is: 'project-list',
+                properties: {
+                    projects: {
+                        type: Array,
+                        notify: true
+                    }
+                },
+                ready : function() {
+                  this.$.getter.generateRequest();
+                },
+                editClick : function(e) {
+                    page("/project/"+ e.model.item.id);
+                },
+                deleteClick : function(e) {
+                    lastSelected = e.model.item.id;
+                    this.$.deleteConfirm.toggle();
+                },
+                dismiss : function() {
+                    lastSelected = null;
+                    this.$.deleteConfirm.toggle();
+                },
+                deleteProject : function() {
+                    if(lastSelected == null) {
+                        return;
+                    }
+                    this.$.deleteConfirm.toggle();
+                    var poster = this.$.poster;
+                    poster.url="/api/project/"+lastSelected;
+                    poster.method = "DELETE";
+                    poster.generateRequest();
+                },
+                refreshList : function() {
+                    this.$.getter.generateRequest();
+                },
+                createClick : function() {
+                    var creator = this.$.poster;
+                    creator.url="/api/project";
+                    creator.method = "POST";
+                    creator.generateRequest();
+                },
+                navigateToCases : function(e) {
+                    page("/project/"+ e.model.item.id+"/case");
+                }
+            });
+        })();
+    </script>
+</dom-module>

@@ -1,0 +1,78 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-grid/iron-grid.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/iron-autogrow-textarea/iron-autogrow-textarea.html">
+
+<dom-module id="ccase-edit">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+
+        <iron-ajax id="getCase" last-response="{{ccase}}"></iron-ajax>
+        <iron-ajax id="poster" content-type="application/json"></iron-ajax>
+        <div class="card-content">
+            <h2>
+                C-[[ids.pid]]-[[slicer(ids.cid)]]
+            </h2>
+            <paper-input value="{{ccase.title}}" label="Title"></paper-input>
+            <paper-textarea value="{{ccase.description}}" label="Description"></paper-textarea>
+            <paper-input value="{{ccase.primaryActor}}" label="Primary actor"></paper-input>
+            <paper-textarea value="{{ccase.precondintions}}" label="Preconditions"></paper-textarea>
+            <paper-textarea value="{{ccase.postconditions}}" label="Postconditions"></paper-textarea>
+            <paper-textarea value="{{ccase.mainSuccessScenario}}" label="Main success scenario"></paper-textarea>
+            <paper-textarea value="{{ccase.extensions}}" label="Extensions"></paper-textarea>
+            <paper-input value="{{ccase.frequencyOfUse}}" label="Frequency of use"></paper-input>
+            <paper-input value="{{ccase.owner}}" label="Owner"></paper-input>
+            <paper-input value="{{ccase.priority}}" label="Priority"></paper-input>
+        </div>
+        <div class="card-actions">
+            <paper-icon-button icon="check" on-click="save"></paper-icon-button>
+        </div>
+    </template>
+    <script>
+        (function() {
+            'use strict';
+            Polymer({
+                is:"ccase-edit",
+                properties: {
+                    ids:{
+                        type:Object,
+                        notify: true,
+                        observer:"pidChanged"
+                    },
+                    ccase : {
+                        type:Object,
+                        notify: true
+                    }
+                },
+                slicer: function(id) {
+                    var s = "0000000000"+id;
+                    return s.substr(s.length - 4);
+                },
+                pidChanged : function(nids) {
+                    var getter = this.$.getCase;
+                    if(nids.cid == null || nids.cid == undefined)
+                    {
+                        return;
+                    }
+                    getter.url = "/api/project/"+nids.pid+"/case/"+nids.cid;
+                    getter.method = "GET";
+                    getter.generateRequest();
+                },
+                save : function() {
+                    var poster = this.$.poster;
+                    poster.url="/api/project/"+this.ids.pid+"/case/"+this.ids.cid;
+                    poster.method = "PUT";
+                    poster.body = JSON.stringify(this.ccase);
+                    poster.generateRequest();
+                }
+            })
+        })();
+    </script>
+</dom-module>

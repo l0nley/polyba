@@ -1,0 +1,133 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-grid/iron-grid.html">
+<link rel="import" href="../../bower_components/iron-signals/iron-signals.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<dom-module id="case-list">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            paper-card {
+                margin-bottom: 10px;
+                width:300px;
+            }
+        </style>
+        <iron-ajax id="getProject" last-response="{{project}}"></iron-ajax>
+        <iron-ajax id="getCases" last-response="{{cases}}"></iron-ajax>
+        <iron-ajax id="poster" on-response="refreshList"></iron-ajax>
+        <paper-dialog id="deleteConfirm">
+            <h2>Delete project</h2>
+            <div>
+                Are you sure want to delete case?
+                <div class="buttons">
+                    <paper-icon-button icon="cancel" on-click="dismiss">Cancel</paper-icon-button>
+                    <paper-icon-button icon="delete" on-click="postDeleteCase">Yes, delete it</paper-icon-button>
+                </div>
+            </div>
+        </paper-dialog>
+        <h2>
+            [[project.name]]
+        </h2>
+        <template is="dom-repeat" items="{{cases}}">
+            <paper-card heading="C-[[project.id]]-[[slicer(item.id)]]">
+                <div class="card-content">
+                   [[item.title]]
+                </div>
+                <div class="card-actions">
+                    <paper-icon-button icon="create" on-click="navigateCase"></paper-icon-button>
+                    <paper-icon-button icon="delete" on-click="deleteCase"></paper-icon-button>
+                </div>
+            </paper-card>
+        </template>
+        <paper-card heading="Create new case">
+            <div class="card-content">
+                &nbsp;
+            </div>
+            <div class="card-actions">
+                <paper-icon-button icon="add-circle-outline" on-click="createCase"></paper-icon-button>
+            </div>
+        </paper-card>
+
+    </template>
+    <script>
+        (function(){
+            'use strict';
+            var lastSelected = null;
+            Polymer({
+                is:"case-list",
+                properties :{
+                    ids: {
+                        type:Object,
+                        notify:true,
+                        observer:"pidChanged"
+                    },
+                    project : {
+                        type: Object,
+                        notify: true
+                    },
+                    cases : {
+                        type : Array,
+                        notify: true
+                    }
+                },
+                slicer: function(id) {
+                    var s = "0000000000"+id;
+                    return s.substr(s.length - 4);
+                },
+                pidChanged: function(nids) {
+                    var getter = this.$.getProject;
+                    getter.url = "/api/project/"+nids.pid;
+                    getter.method = "GET";
+                    getter.generateRequest();
+                    var caser = this.$.getCases;
+                    caser.url="/api/project/"+nids.pid+"/case";
+                    caser.method = "GET";
+                    caser.generateRequest();
+                },
+                refreshList : function() {
+                    var caser = this.$.getCases;
+                    caser.url="/api/project/"+this.ids.pid+"/case";
+                    caser.method = "GET";
+                    caser.generateRequest();
+                },
+                navigateCase: function(e) {
+                    var pid = this.ids.pid;
+                    var caseid = e.model.item.id;
+                    page("/project/"+pid+"/case/"+caseid);
+                },
+                createCase: function() {
+                    var pid = this.ids.pid;
+                    var poster = this.$.poster;
+                    poster.url = "/api/project/"+pid+"/case";
+                    poster.method = "POST";
+                    poster.generateRequest();
+                },
+                deleteCase : function(e) {
+                    lastSelected = e.model.item.id;
+                    this.$.deleteConfirm.toggle();
+                },
+                postDeleteCase : function() {
+                    this.$.deleteConfirm.toggle();
+                    if(lastSelected == null || lastSelected == undefined)
+                    {
+                        return;
+                    }
+                    var poster = this.$.poster;
+                    poster.url = "/api/project/"+this.ids.pid+"/case/"+lastSelected;
+                    poster.method = "DELETE";
+                    lastSelected = null;
+                    poster.generateRequest();
+                },
+                dismiss : function() {
+                    lastSelected = null;
+                    this.$.deleteConfirm.toggle();
+                }
+            });
+        })();
+    </script>
+</dom-module>
